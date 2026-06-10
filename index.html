@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda Diário</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="auth-shell hidden">
+    <section class="auth-card">
+      <div class="auth-brand">
+        <span class="brand-mark">W</span>
+        <div>
+          <h1>Wishlist Planner</h1>
+          <p>Entre para acessar seu plano diário com proteção pessoal.</p>
+        </div>
+      </div>
+      <form id="auth-form" class="auth-form">
+        <div class="auth-field">
+          <label for="auth-username">Nome</label>
+          <input id="auth-username" type="text" placeholder="Seu nome" autocomplete="username" />
+        </div>
+        <div class="auth-field">
+          <label for="auth-password">Senha</label>
+          <input id="auth-password" type="password" placeholder="Senha secreta" autocomplete="current-password" />
+        </div>
+        <button id="auth-submit" type="submit" class="btn btn-primary">Entrar</button>
+        <p class="auth-note">Cadastre uma senha na primeira vez. Na próxima visita, use-a para entrar.</p>
+      </form>
+    </section>
+  </div>
+  <div class="page-shell hidden">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark">W</span>
+        <div>
+          <strong>Wishlist Planner</strong>
+          <small>Seu plano privado</small>
+        </div>
+      </div>
+      <button id="logout-btn" class="btn btn-ghost">Sair</button>
+    </div>
+    <header class="hero-card">
+      <div class="hero-copy">
+        <p class="eyebrow">Plano diário</p>
+        <h1>Minha rotina com <span class="highlight">foco</span> e leveza</h1>
+        <p class="hero-lead">Adicione compromissos fixos, tarefas do dia e pendências futuras — acompanhe o progresso com clareza e suavidade.</p>
+      </div>
+      <div class="hero-visual">
+        <div class="card-illustration">
+          <div class="card-top">
+            <div class="avatar"></div>
+            <div class="meta-lines">
+              <div class="line short"></div>
+              <div class="line long"></div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="rect"></div>
+            <div class="rect small"></div>
+            <div class="rect small"></div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-target="today-view">Hoje</button>
+        <button type="button" class="tab" data-target="weekly-view">Planner Semanal</button>
+        <button type="button" class="tab" data-target="monthly-view">Planner Mensal</button>
+        <button type="button" class="tab" data-target="todo-view">To Do</button>
+        <button type="button" class="tab" data-target="social-view">Rede Social</button>
+      </div>
+
+      <div id="today-view" class="view active">
+        <section class="grid-section">
+          <article class="panel">
+            <h2>Macro diário</h2>
+            <p>Compromissos fixos organizados por categoria.</p>
+            <form id="daily-form" class="input-row">
+              <input type="text" id="daily-input" placeholder="Nova rotina diária" autocomplete="off" />
+              <select id="daily-category" aria-label="Categoria da rotina diária">
+                <option value="ESTUDO">Estudo</option>
+                <option value="TRABALHO 3F">Trabalho 3F</option>
+                <option value="TRABALHO ADVOGADA">Trabalho Advogada</option>
+                <option value="SAÚDE">Saúde</option>
+                <option value="CASA">Casa</option>
+              </select>
+              <button type="submit">Adicionar</button>
+            </form>
+            <ul id="daily-list" class="task-list"></ul>
+          </article>
+
+          <article class="panel">
+            <h2>Meu dia</h2>
+            <p>Mostra automaticamente o que está planejado para hoje no planner semanal, além de suas tarefas avulsas.</p>
+            <form id="adhoc-form" class="input-row">
+              <input type="text" id="adhoc-input" placeholder="Nova tarefa do dia" autocomplete="off" />
+              <button type="submit">Adicionar</button>
+            </form>
+            <ul id="adhoc-list" class="task-list"></ul>
+          </article>
+
+          <article class="panel status-panel">
+            <div class="status-head">
+              <div>
+                <h2>Progresso do dia</h2>
+                <p>O gráfico mostra quantas tarefas você concluiu entre as planejadas.</p>
+              </div>
+              <div class="status-pill" id="progress-text">0/0 concluídas</div>
+            </div>
+            <canvas id="progress-chart" width="360" height="360"></canvas>
+          </article>
+        </section>
+
+      </div>
+
+      <div id="weekly-view" class="view">
+        <section class="panel wide-panel weekly-panel">
+          <div class="section-header">
+            <div>
+              <h2>Planner semanal</h2>
+              <p>Organize os próximos 7 dias com três modos de inclusão: tarefas do planner, macro diário e pendências futuras.</p>
+            </div>
+          </div>
+          <div id="week-grid" class="week-grid"></div>
+        </section>
+      </div>
+
+      <div id="monthly-view" class="view">
+        <section class="panel wide-panel monthly-panel">
+          <div class="section-header">
+            <div>
+              <h2>Planner mensal</h2>
+              <p>Veja todos os dias do mês e adicione tarefas para cada data. Elas aparecem no planner semanal quando estiverem próximas.</p>
+            </div>
+          </div>
+          <div class="month-controls">
+            <select id="monthly-month" aria-label="Mês"></select>
+            <select id="monthly-year" aria-label="Ano"></select>
+            <button id="monthly-go" type="button">Ir</button>
+          </div>
+          <div id="month-grid" class="month-grid"></div>
+        </section>
+      </div>
+
+      <div id="todo-view" class="view">
+        <section class="panel wide-panel todo-panel">
+          <div class="section-header">
+            <div>
+              <h2>To Do</h2>
+              <p>Pendências organizadas por tópico e subtópico de prioridade.</p>
+            </div>
+          </div>
+          <form id="pending-form" class="pending-form">
+            <input type="text" id="pending-title" placeholder="Pendência" autocomplete="off" />
+            <input type="text" id="pending-topic" placeholder="Tópico (ex: Saúde)" autocomplete="off" />
+            <div class="priority-row" role="radiogroup" aria-label="Prioridade da pendência">
+              <label class="priority-option priority-urgent">
+                <input type="radio" name="pending-priority" value="Urgente" />
+                <span>Urgente</span>
+              </label>
+              <label class="priority-option priority-attention">
+                <input type="radio" name="pending-priority" value="Atenção" />
+                <span>Atenção</span>
+              </label>
+              <label class="priority-option priority-green">
+                <input type="radio" name="pending-priority" value="Com calma" />
+                <span>Com calma</span>
+              </label>
+            </div>
+            <button type="submit">Salvar pendência</button>
+          </form>
+          <div id="pending-list" class="pending-list todo-columns"></div>
+        </section>
+      </div>
+      <div id="social-view" class="view">
+        <section class="panel wide-panel social-panel">
+          <div class="section-header">
+            <div>
+              <h2>Rede Social</h2>
+              <p>Calendário editorial mensal para planejar publicações.</p>
+            </div>
+          </div>
+          <div class="month-controls">
+            <select id="social-month" aria-label="Mês social"></select>
+            <select id="social-year" aria-label="Ano social"></select>
+            <button id="social-go" type="button" class="btn btn-primary">Ir</button>
+          </div>
+          <div id="social-grid" class="month-grid social-grid"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notes modal (Rede Social) -->
+  <div id="notes-modal" class="notes-modal" aria-hidden="true">
+    <div class="notes-backdrop" id="notes-backdrop"></div>
+    <div class="notes-dialog" role="dialog" aria-modal="true" aria-labelledby="notes-title">
+      <header class="notes-header">
+        <h3 id="notes-title">Notas da publicação</h3>
+        <button id="notes-close" class="notes-close">✕</button>
+      </header>
+      <main class="notes-main">
+        <textarea id="notes-text" placeholder="Escreva suas observações..."></textarea>
+      </main>
+      <footer class="notes-footer">
+        <button id="notes-save" class="notes-save">Salvar notas</button>
+        <button id="notes-cancel" class="notes-cancel">Fechar</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

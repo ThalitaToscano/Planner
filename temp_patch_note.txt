@@ -1,0 +1,1 @@
+Applying hero layout changes to index.html and styles.css to match inspiration images.
