@@ -506,7 +506,13 @@ function renderPending() {
     return acc;
   }, {});
 
-  Object.keys(topics).forEach((topic) => {
+  // Sort topics by PRESET_TOPICS order, then add 'Sem tópico' at the end
+  const sortedTopics = [
+    ...PRESET_TOPICS.filter(t => topics[t]),
+    ...Object.keys(topics).filter(t => !PRESET_TOPICS.includes(t))
+  ];
+
+  sortedTopics.forEach((topic) => {
     const column = document.createElement('div');
     column.className = 'todo-topic-column';
 
