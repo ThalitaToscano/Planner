@@ -450,10 +450,15 @@ function createPendingItem(item, index, topicsList = []) {
   const remove = document.createElement('button');
   remove.textContent = 'Remover';
   remove.title = 'Remover pendência';
+  remove.className = 'pending-remove-btn';
   remove.addEventListener('click', () => removePending(index));
 
+  const actions = document.createElement('div');
+  actions.className = 'pending-item-actions';
+  actions.appendChild(remove);
+
   card.appendChild(content);
-  card.appendChild(remove);
+  card.appendChild(actions);
   return card;
 }
 
