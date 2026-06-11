@@ -746,8 +746,8 @@ img {
 }
 
 .pending-item.urgent-yellow {
-  background: rgba(255, 193, 7, 0.14);
-  border-color: rgba(255, 193, 7, 0.34);
+  background: rgba(255, 179, 0, 0.2);
+  border-color: rgba(255, 179, 0, 0.4);
 }
 
 .pending-item.urgent-green {
