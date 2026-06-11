@@ -8,7 +8,6 @@ const logoutBtn = document.getElementById('logout-btn');
 const pageShell = document.querySelector('.page-shell');
 const dailyForm = document.getElementById('daily-form');
 const dailyInput = document.getElementById('daily-input');
-const dailyCategory = document.getElementById('daily-category');
 const dailyList = document.getElementById('daily-list');
 const adhocForm = document.getElementById('adhoc-form');
 const adhocInput = document.getElementById('adhoc-input');
@@ -211,20 +210,29 @@ function saveViewSelection(key, month, year) {
 function createTaskItem(task, index, type, meta = {}) {
   const item = document.createElement('li');
   item.className = `task-item ${type === 'daily' ? 'macro-task' : type === 'weekly' ? 'weekly-task' : 'daily-task'}`;
+  // expose the original index so reordering can map back to source arrays
+  item.dataset.index = index;
+  // enable dragging for daily and adhoc (Meu dia) tasks
+  if (type === 'daily' || type === 'adhoc') {
+    item.draggable = true;
+  }
 
-  const label = document.createElement(type !== 'daily' ? 'label' : 'div');
+  const label = document.createElement('label');
   label.className = 'task-label';
 
-  if (type !== 'daily') {
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = task.done;
-    checkbox.addEventListener('change', () => {
-      if (type === 'adhoc') toggleTaskDone(type, index);
-      else togglePlannedDone(meta);
-    });
-    label.appendChild(checkbox);
-  }
+  // add checkbox for daily and adhoc and weekly items created via createTaskItem
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.checked = !!task.done;
+  checkbox.addEventListener('change', () => {
+    if (type === 'daily' || type === 'adhoc') {
+      toggleTaskDone(type, index);
+    } else {
+      // planned tasks use meta to identify source and date
+      togglePlannedDone(Object.assign({}, meta, { index }));
+    }
+  });
+  label.appendChild(checkbox);
 
   const textWrapper = document.createElement('div');
   textWrapper.className = 'task-text';
@@ -265,9 +273,86 @@ function createTaskItem(task, index, type, meta = {}) {
     else removePlannedTask(meta);
   });
 
+  // add mobile-friendly move controls for daily macro tasks
+  if (type === 'daily') {
+    const up = document.createElement('button');
+    up.className = 'move-btn move-up';
+    up.title = 'Mover para cima';
+    up.textContent = '↑';
+    up.addEventListener('click', () => {
+      moveDaily(index, -1);
+    });
+    const down = document.createElement('button');
+    down.className = 'move-btn move-down';
+    down.title = 'Mover para baixo';
+    down.textContent = '↓';
+    down.addEventListener('click', () => {
+      moveDaily(index, 1);
+    });
+    item.appendChild(up);
+    item.appendChild(down);
+  }
+
   item.appendChild(label);
   item.appendChild(remove);
   return item;
+}
+
+// Enable drag-and-drop reordering on a list element backed by an array
+function enableListDrag(listEl, arrayName) {
+  if (!listEl || listEl.dataset.dragInit === 'true') return;
+  listEl.dataset.dragInit = 'true';
+  let draggingEl = null;
+
+  listEl.addEventListener('dragstart', (e) => {
+    const li = e.target.closest('li');
+    if (!li) return;
+    draggingEl = li;
+    li.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  listEl.addEventListener('dragend', (e) => {
+    if (draggingEl) draggingEl.classList.remove('dragging');
+    draggingEl = null;
+  });
+
+  listEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const after = getDragAfterElement(listEl, e.clientY);
+    if (!draggingEl) return;
+    if (after == null) listEl.appendChild(draggingEl);
+    else listEl.insertBefore(draggingEl, after);
+  });
+
+  listEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (!listEl) return;
+    const items = Array.from(listEl.querySelectorAll('li'));
+    const oldIndices = items.map((li) => Number(li.dataset.index));
+    // build reordered array from original indices
+    const source = arrayName === 'daily' ? dailyTasks : adhocTasks;
+    const reordered = oldIndices.map(i => source[i]);
+    if (arrayName === 'daily') dailyTasks = reordered;
+    else adhocTasks = reordered;
+    saveState();
+    renderTasks();
+  });
+
+  function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('li:not(.dragging)')];
+    let closest = null;
+    let closestOffset = Number.NEGATIVE_INFINITY;
+    draggableElements.forEach((child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if (offset < 0 && offset > closestOffset) {
+        closestOffset = offset;
+        closest = child;
+      }
+    });
+    return closest;
+  }
 }
 
 function getSubtopicClass(subtopic) {
@@ -796,8 +881,8 @@ function removePending(index) {
 function renderProgress() {
   const todayWeekly = getTodayWeeklyTasks();
   const todayMonthly = getTodayMonthlyTasks();
-  const total = adhocTasks.length + todayWeekly.length + todayMonthly.length;
-  const doneCount = adhocTasks.filter((task) => task.done).length + todayWeekly.filter((task) => task.done).length + todayMonthly.filter((task) => task.done).length;
+  const total = dailyTasks.length + adhocTasks.length + todayWeekly.length + todayMonthly.length;
+  const doneCount = dailyTasks.filter((t) => t.done).length + adhocTasks.filter((task) => task.done).length + todayWeekly.filter((task) => task.done).length + todayMonthly.filter((task) => task.done).length;
   progressText.textContent = `${doneCount}/${total} concluídas`;
   drawChart(doneCount, total);
 }
@@ -854,11 +939,24 @@ function drawChart(done, total) {
   }
 }
 
-function addDailyTask(text, category) {
+function addDailyTask(text) {
   if (!text.trim()) return;
-  dailyTasks.push({ text: text.trim(), category: category || 'ESTUDO', done: false });
+  dailyTasks.push({ text: text.trim(), done: false });
   dailyInput.value = '';
-  dailyCategory.value = 'ESTUDO';
+  saveState();
+  renderTasks();
+}
+
+function moveArrayItem(arr, from, to) {
+  if (from === to) return;
+  if (from < 0 || to < 0 || from >= arr.length || to >= arr.length) return;
+  const [item] = arr.splice(from, 1);
+  arr.splice(to, 0, item);
+}
+
+function moveDaily(index, delta) {
+  const to = index + delta;
+  moveArrayItem(dailyTasks, index, to);
   saveState();
   renderTasks();
 }
@@ -887,7 +985,7 @@ function addPendingItem(title, topic) {
 
 dailyForm.addEventListener('submit', (event) => {
   event.preventDefault();
-  addDailyTask(dailyInput.value, dailyCategory.value);
+  addDailyTask(dailyInput.value);
 });
 
 adhocForm.addEventListener('submit', (event) => {
@@ -1051,6 +1149,9 @@ function renderSocialCalendar() {
       renderWeeklyPlanner();
       renderMonthlyPlanner();
       renderSocialCalendar();
+      // enable drag & drop reordering for daily and adhoc lists
+      enableListDrag(dailyList, 'daily');
+      enableListDrag(adhocList, 'adhoc');
     } else {
       alert('Usuário ou senha incorretos.');
       authPassword.value = '';
@@ -1101,6 +1202,9 @@ window.addEventListener('load', () => {
     renderWeeklyPlanner();
     renderMonthlyPlanner();
     renderSocialCalendar();
+    // initialize drag & drop reordering
+    enableListDrag(dailyList, 'daily');
+    enableListDrag(adhocList, 'adhoc');
   } else {
     showAuth();
   }

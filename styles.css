@@ -205,6 +205,19 @@ img {
   border: 1px solid rgba(148, 163, 184, 0.18);
 }
 
+.task-item { cursor: grab; }
+.task-item.dragging { opacity: 0.5; }
+.move-btn {
+  background: rgba(124,94,248,0.08);
+  border: 1px solid rgba(148,163,184,0.12);
+  padding: 6px 8px;
+  margin-left: 6px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.move-btn:active { transform: translateY(1px); }
+
 .task-item label,
 .week-task label,
 .pending-item label {
