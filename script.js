@@ -37,6 +37,9 @@ const socialMonth = document.getElementById('social-month');
 const socialYear = document.getElementById('social-year');
 const socialGo = document.getElementById('social-go');
 
+// tópicos predefinidos para pendências
+const PRESET_TOPICS = ['Advogada', 'Digital', 'Estudo', 'Geral', 'Produção de Conteúdo', 'Saúde', 'Outros'];
+
 let dailyTasks = [];
 let adhocTasks = [];
 let pendingItems = [];
@@ -383,8 +386,9 @@ function createPendingItem(item, index, topicsList = []) {
   topicLabel.textContent = 'Tópico: ';
   const topicSelect = document.createElement('select');
   topicSelect.className = 'pending-topic-select';
-  // ensure 'Sem tópico' is present
-  const normalizedTopics = Array.from(new Set([...(topicsList || []), item.topic || 'Sem tópico']));
+  // use provided topicsList or fallback to PRESET_TOPICS; ensure 'Sem tópico' present
+  const baseTopics = (topicsList && topicsList.length) ? topicsList : PRESET_TOPICS;
+  const normalizedTopics = Array.from(new Set([...baseTopics, item.topic || 'Sem tópico']));
   if (!normalizedTopics.includes('Sem tópico')) normalizedTopics.unshift('Sem tópico');
   normalizedTopics.forEach((t) => {
     const opt = document.createElement('option');
@@ -499,7 +503,7 @@ function renderPending() {
     // build a list of all topics to populate selects
     const uniqueTopics = Object.keys(topics).map(t => t === 'Sem tópico' ? 'Sem tópico' : t);
     topics[topic].forEach(({ item, index }) => {
-      column.appendChild(createPendingItem(item, index, uniqueTopics));
+      column.appendChild(createPendingItem(item, index, PRESET_TOPICS));
     });
 
     pendingList.appendChild(column);
