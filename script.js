@@ -364,7 +364,7 @@ function getSubtopicClass(subtopic) {
   return 'pending-chip-default';
 }
 
-function createPendingItem(item, index) {
+function createPendingItem(item, index, topicsList = []) {
   const card = document.createElement('div');
   card.className = 'pending-item';
 
@@ -378,16 +378,54 @@ function createPendingItem(item, index) {
   const meta = document.createElement('div');
   meta.className = 'pending-meta';
 
-  const topicChip = document.createElement('span');
-  topicChip.className = 'pending-chip pending-chip-topic';
-  topicChip.textContent = item.topic || 'Sem tópico';
+  // Topic select (allows changing topic after save)
+  const topicLabel = document.createElement('label');
+  topicLabel.textContent = 'Tópico: ';
+  const topicSelect = document.createElement('select');
+  topicSelect.className = 'pending-topic-select';
+  // ensure 'Sem tópico' is present
+  const normalizedTopics = Array.from(new Set([...(topicsList || []), item.topic || 'Sem tópico']));
+  if (!normalizedTopics.includes('Sem tópico')) normalizedTopics.unshift('Sem tópico');
+  normalizedTopics.forEach((t) => {
+    const opt = document.createElement('option');
+    opt.value = t === 'Sem tópico' ? '' : t;
+    opt.textContent = t;
+    topicSelect.appendChild(opt);
+  });
+  topicSelect.value = item.topic || '';
+  topicSelect.addEventListener('change', () => {
+    pendingItems[index].topic = topicSelect.value || '';
+    saveState();
+    renderPending();
+  });
 
-  const subtopicChip = document.createElement('span');
-  subtopicChip.className = `pending-chip ${getSubtopicClass(item.subtopic)}`;
-  subtopicChip.textContent = item.subtopic || 'Sem subtópico';
+  // Priority select (urgency)
+  const priorityLabel = document.createElement('label');
+  priorityLabel.textContent = 'Urgência: ';
+  const prioritySelect = document.createElement('select');
+  prioritySelect.className = 'pending-priority-select';
+  const priorities = ['', 'Urgente', 'Atenção', 'Com calma'];
+  priorities.forEach((p) => {
+    const opt = document.createElement('option');
+    opt.value = p;
+    opt.textContent = p === '' ? 'Sem subtópico' : p;
+    prioritySelect.appendChild(opt);
+  });
+  prioritySelect.value = item.subtopic || '';
+  prioritySelect.addEventListener('change', () => {
+    pendingItems[index].subtopic = prioritySelect.value || '';
+    saveState();
+    renderPending();
+  });
 
-  meta.appendChild(topicChip);
-  meta.appendChild(subtopicChip);
+  const topicWrapper = document.createElement('div');
+  topicWrapper.className = 'pending-select-row';
+  topicWrapper.appendChild(topicLabel);
+  topicWrapper.appendChild(topicSelect);
+  topicWrapper.appendChild(priorityLabel);
+  topicWrapper.appendChild(prioritySelect);
+
+  meta.appendChild(topicWrapper);
   content.appendChild(title);
   content.appendChild(meta);
 
@@ -458,8 +496,10 @@ function renderPending() {
     header.textContent = topic;
     column.appendChild(header);
 
+    // build a list of all topics to populate selects
+    const uniqueTopics = Object.keys(topics).map(t => t === 'Sem tópico' ? 'Sem tópico' : t);
     topics[topic].forEach(({ item, index }) => {
-      column.appendChild(createPendingItem(item, index));
+      column.appendChild(createPendingItem(item, index, uniqueTopics));
     });
 
     pendingList.appendChild(column);

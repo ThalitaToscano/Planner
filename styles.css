@@ -739,6 +739,19 @@ img {
 .pending-chip-attention { background: rgba(255,196,90,0.16); color: #a66b10; }
 .pending-chip-green { background: rgba(117,211,163,0.16); color: #1f7f50; }
 
+.pending-select-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.pending-select-row select {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.14);
+  background: #ffffff;
+}
+
 .todo-columns {
   display: grid;
   gap: 18px;
