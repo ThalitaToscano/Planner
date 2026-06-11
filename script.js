@@ -367,9 +367,19 @@ function getSubtopicClass(subtopic) {
   return 'pending-chip-default';
 }
 
+function getUrgencyClass(urgency) {
+  if (urgency === 'Urgente') return 'urgent-red';
+  if (urgency === 'Atenção') return 'urgent-yellow';
+  if (urgency === 'Com calma') return 'urgent-green';
+  return '';
+}
+
 function createPendingItem(item, index, topicsList = []) {
   const card = document.createElement('div');
   card.className = 'pending-item';
+  // Apply urgency color class
+  const urgencyClass = getUrgencyClass(item.subtopic);
+  if (urgencyClass) card.classList.add(urgencyClass);
 
   const content = document.createElement('div');
   content.className = 'pending-item-content';
@@ -418,6 +428,10 @@ function createPendingItem(item, index, topicsList = []) {
   prioritySelect.value = item.subtopic || '';
   prioritySelect.addEventListener('change', () => {
     pendingItems[index].subtopic = prioritySelect.value || '';
+    // Update card color class
+    card.classList.remove('urgent-red', 'urgent-yellow', 'urgent-green');
+    const newUrgencyClass = getUrgencyClass(prioritySelect.value);
+    if (newUrgencyClass) card.classList.add(newUrgencyClass);
     saveState();
     renderPending();
   });

@@ -739,6 +739,22 @@ img {
 .pending-chip-attention { background: rgba(255,196,90,0.16); color: #a66b10; }
 .pending-chip-green { background: rgba(117,211,163,0.16); color: #1f7f50; }
 
+/* Urgency colors for pending items */
+.pending-item.urgent-red {
+  background: rgba(255, 108, 108, 0.16);
+  border-color: rgba(255, 108, 108, 0.32);
+}
+
+.pending-item.urgent-yellow {
+  background: rgba(255, 196, 90, 0.16);
+  border-color: rgba(255, 196, 90, 0.32);
+}
+
+.pending-item.urgent-green {
+  background: rgba(117, 211, 163, 0.18);
+  border-color: rgba(117, 211, 163, 0.32);
+}
+
 .pending-select-row {
   display: flex;
   gap: 10px;
